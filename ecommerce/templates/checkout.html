@@ -1,0 +1,219 @@
+{% extends "base.html" %} {%load static%} {%block content%}
+
+    <main>
+      <!-- breadcrumb area start -->
+      <section
+        class="breadcrumb__area include-bg pt-95 pb-50"
+        data-bg-color="#EFF1F5"
+      >
+        <div class="container">
+          <div class="row">
+            <div class="col-xxl-12">
+              <div class="breadcrumb__content p-relative z-index-1">
+                <h3 class="breadcrumb__title">Checkout</h3>
+                <div class="breadcrumb__list">
+                  <span><a href="#">Home</a></span>
+                  <span>Checkout</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- breadcrumb area end -->
+
+      <!-- checkout area start -->
+      <section class="tp-checkout-area pb-120" data-bg-color="#EFF1F5">
+        <div class="container">
+          <div class="row">
+            <div class="col-xl-7 col-lg-7">
+              <div class="tp-checkout-verify">
+                <div class="tp-checkout-verify-item">
+                 {%if user.is_authenticated%}
+                
+                 {%else%}
+                 <p class="tp-checkout-verify-reveal">
+                  Returning customer?
+                  <button
+                    type="button"
+                    class="tp-checkout-login-form-reveal-btn"
+                  >
+                    Click here to login
+                  </button>
+                </p>
+                 {%endif%}
+
+                  <div
+                    id="tpReturnCustomerLoginForm"
+                    class="tp-return-customer"
+                  >
+                    <form action="#">
+                      {% csrf_token %}
+
+                      <div class="tp-return-customer-input">
+                        <label>Email</label>
+                        <input type="text" placeholder="Your Email" />
+                      </div>
+                      <div class="tp-return-customer-input">
+                        <label>Password</label>
+                        <input type="password" placeholder="Password" />
+                      </div>
+
+                      <div
+                        class="tp-return-customer-suggetions d-sm-flex align-items-center justify-content-between mb-20"
+                      >
+                        <div class="tp-return-customer-remeber">
+                          <input id="remeber" type="checkbox" />
+                          <label for="remeber">Remember me</label>
+                        </div>
+                        <div class="tp-return-customer-forgot">
+                          <a href="forgot.html">Forgot Password?</a>
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        class="tp-return-customer-btn tp-checkout-btn"
+                      >
+                        Login
+                      </button>
+                    </form>
+                  </div>
+                </div>
+                <div class="tp-checkout-verify-item">
+                 
+
+                 
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-7">
+              <div class="tp-checkout-bill-area">
+                <h3 class="tp-checkout-bill-title">Put your shipping details below</h3>
+
+               
+                <div class="tp-checkout-bill-form">
+                  <form action="{% url 'create_checkout_session' %}" method="POST">  <!-- Adjust the URL name as needed -->
+                      {% csrf_token %}
+                      <div class="tp-checkout-bill-inner">
+                          <div class="row">
+                              {% comment %} <div class="col-md-6">
+                                  <div class="tp-checkout-input">
+                                      <label>First Name <span>*</span></label>
+                                      <input type="text" name="first_name" placeholder="First Name" value="{{ customer.first_name }}" required />
+                                  </div>
+                              </div>
+                              <div class="col-md-6">
+                                  <div class="tp-checkout-input">
+                                      <label>Last Name <span>*</span></label>
+                                      <input type="text" name="last_name" placeholder="Last Name" value="{{ customer.last_name }}" required />
+                                  </div>
+                              </div> {% endcomment %}
+                              <div class="col-md-12">
+                                  <div class="tp-checkout-input">
+                                      <label>Country / Region</label>
+                                      <input type="text" name="country" placeholder="United States (US)" value="" />
+                                  </div>
+                              </div>
+                              <div class="col-md-12">
+                                  <div class="tp-checkout-input">
+                                      <label>Street address</label>
+                                      <input type="text" name="address" placeholder="House number and street name" value="" />
+                                  </div>
+                              </div>
+                              <div class="col-md-12">
+                                  <div class="tp-checkout-input">
+                                      <label>Town / City</label>
+                                      <input type="text" name="city" placeholder="" value="" />
+                                  </div>
+                              </div>
+                             
+                              <div class="col-md-6">
+                                  <div class="tp-checkout-input">
+                                      <label>Postcode ZIP</label>
+                                      <input type="text" name="postal_code" placeholder="" value="" />
+                                  </div>
+                              </div>
+                              <div class="col-md-12">
+                                 
+                              </div>
+                              <div class="col-md-12">
+                                 
+                              </div>
+                              {% comment %} <div class="col-md-12">
+                                  <div class="tp-checkout-input">
+                                      <label>Order notes (optional)</label>
+                                      <textarea name="order_notes" placeholder="Notes about your order, e.g. special notes for delivery."></textarea>
+                                  </div>
+                              </div> {% endcomment %}
+                          </div>
+                          
+                      </div>
+                 
+              </div>
+              
+              </div>   <button  class="tp-checkout-btn w-100" type="submit">Proceed to Payment</button>  <!-- Submit Button -->
+            </form>
+            </div>
+            <div class="col-lg-5">
+              <!-- checkout place order -->
+              <div class="tp-checkout-place white-bg">
+                <h3 class="tp-checkout-place-title">Your Order</h3>
+
+                <div class="tp-order-info-list">
+                  <ul>
+                    <!-- header -->
+                    <li class="tp-order-info-list-header">
+                      <h4>Product</h4>
+                      <h4>Total</h4>
+                    </li>
+
+                    <!-- item list -->
+                    {% for item in cart_products %}
+                    <li class="tp-order-info-list-desc">
+                      <p>{{ item.product.name }} <span>X{{ item.quantity }}</span></p>
+                      
+                      {% if item.product.discount_percentage %}
+                        <span>${{ item.product.discounted_price }}</span>
+                      {% else %}
+                        <span>${{ item.product.price }}</span>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                  
+
+                    <!-- subtotal -->
+                    <li class="tp-order-info-list-subtotal">
+                      <span>Total</span>
+                      
+                      {% if coupon_price %}
+                          <span>${{ coupon_price }}</span>
+                      {% elif cart_dis %}
+                          <span>${{ cart_dis }}</span>
+                      {% else %}
+                          <span>${{ cart_total }}</span>
+                      {% endif %}
+                    </li>
+                    
+
+                    <!-- shipping -->
+                    <li class="tp-order-info-list-shipping">
+                   
+                      <div
+                        class="tp-order-info-list-shipping-item d-flex flex-column align-items-end"
+                      >
+                     
+                       
+                        
+                      </div>
+                    
+                </div>
+               
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- checkout area end -->
+    </main>
+    {%endblock%}

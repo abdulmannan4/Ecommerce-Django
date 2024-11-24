@@ -1,0 +1,18 @@
+<div id="search-results" class="search-results-container clearfix">
+    {% if results %}
+      <div class="search-results">
+        {% for result in results %}
+          <div class="search-result-item">
+            <div class="search-result-image">
+              <img src="{{ result.image.url }}" alt="{{ result.name }}" class="result-image">
+            </div>
+            <div class="search-result-info">
+                <a href="{%url 'product_detail' result.slug%}"> <h5 class="product-name">{{ result.name }}</h5>    </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="no-results-message">{{ query }}</p>
+    {% endif %}
+  </div>

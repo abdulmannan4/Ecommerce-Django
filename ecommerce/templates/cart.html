@@ -1,0 +1,250 @@
+{% extends "base.html" %} {%load static%} {%block content%}
+
+    <main>
+      <!-- breadcrumb area start -->
+      <section class="breadcrumb__area include-bg pt-95 pb-50">
+        <div class="container">
+          <div class="row">
+            <div class="col-xxl-12">
+              <div class="breadcrumb__content p-relative z-index-1">
+                <h3 class="breadcrumb__title">Shopping Cart</h3>
+                <div class="breadcrumb__list">
+                  <span><a href="#">Home</a></span>
+                  <span>Shopping Cart</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- breadcrumb area end -->
+
+      <!-- cart area start -->
+      <section class="tp-cart-area pb-120">
+        <div class="container">
+          <div class="row">
+            <div class="col-xl-9 col-lg-8">
+              <div class="tp-cart-list mb-25 mr-30">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th colspan="2" class="tp-cart-header-product">
+                        Product
+                      </th>
+                      <th class="tp-cart-header-price">Price</th>
+                      <th class="tp-cart-header-quantity">Quantity</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for cartp in cart_items %}
+                    <tr>
+                        <!-- img -->
+                        <td class="tp-cart-img">
+                            <a href="product-details.html">
+                              <img src="{{ cartp.product.image.url }}" alt="{{ cartp.product.name }}"/>
+
+                            </a>
+                        </td>
+                        <!-- title -->
+                        <td class="tp-cart-title">
+                            <a href="product-details.html"></a>  <!-- Adjusted to access the product name -->
+                        </td>
+                        <!-- price -->
+                        <td class="tp-cart-price">
+                          {% if cartp.product.discounted_price %}
+                              <span class="discounted-price">${{ cartp.product.discounted_price }}</span>
+                          {% else %}
+                              <span class="regular-price">${{ cartp.product.price }}</span>
+                          {% endif %}
+                      </td>
+                      
+                        <!-- quantity -->
+                        <td class="tp-cart-quantity">
+                          <div class="tp-product-quantity mt-10 mb-10">
+                            <div class="cart-item">
+                              <span class="tp-cart-minus">
+                                  <button type="button" class="btn-decrease" data-slug="{{ cartp.product.slug }}">-</button>
+                              </span>
+                              <input class="tp-cart-input" type="text" value="{{ cartp.quantity }}" readonly/>
+                              <span class="tp-cart-plus">
+                                  <button type="button" class="btn-increase" data-slug="{{ cartp.product.slug }}">+</button>
+                              </span>
+                          </div>
+                          
+                          </div>
+                      </td>
+                      
+                        <!-- action -->
+                        <td class="tp-cart-action">
+                            <button data-cart-product-id="{{ cartp.id}}" class="tp-cart-action-btn">
+                                <span>Remove</span>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                  </tbody>
+                </table>
+              </div>
+              <div class="tp-cart-bottom">
+                <div class="row align-items-end">
+                  <div class="col-xl-6 col-md-8">
+                    <div class="tp-cart-coupon">
+                      <form method="post" action="{% url 'cart_view' %}">
+                          {% csrf_token %}
+                          <div class="tp-cart-coupon-input-box">
+                              <label>Coupon Code:</label>
+                              <div class="tp-cart-coupon-input d-flex align-items-center">
+                                  <input
+                                      type="text"
+                                      name="coupon_code"
+                                      placeholder="Enter Coupon Code"
+                                      required
+                                  />
+                                  <button type="submit">Apply</button>
+                              </div>
+                          </div>
+                      </form>
+                  </div>
+                  
+                  </div>
+                  <div class="col-xl-6 col-md-4">
+                    <div class="tp-cart-update text-md-end">
+                     
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-4 col-md-6">
+              <div class="tp-cart-checkout-wrapper">
+                <div
+                  class="tp-cart-checkout-top d-flex align-items-center justify-content-between"
+                >
+                 
+                <div class="tp-cart-checkout-shipping">
+                  
+                  
+                    <div class="tp-cart-checkout-shipping-option">
+                      
+                      <p >Free shipping</p>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="tp-cart-checkout-total d-flex align-items-center justify-content-between"
+                >
+                  <span>Total</span>
+                {%if final_price%}<span>${{final_price}}</span>{%else%}  <span>${{cart.get_cart_total_discounted}}</span>{%endif%}
+                </div>
+                <div class="tp-cart-checkout-proceed">
+                  <a href="{%url 'checkout'%}" class="tp-cart-checkout-btn w-100"
+                    >Proceed to Checkout</a
+                  
+               
+              
+                {% if discount > 0 %}
+                    <p>Discount Applied: {{ discount }}%</p>
+                {% endif %}
+                
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- cart area end -->
+    </main>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+          const updateCartQuantity = (slug, action) => {
+              const input = document.querySelector(`button[data-slug="${slug}"]`).closest('.cart-item').querySelector('.tp-cart-input');
+              const previousQuantity = parseInt(input.value);
+              
+              // Update the input value optimistically
+             
+              console.log(`Action: ${action}, Slug: ${slug}`); // Debugging line
+              fetch(`/cart/${action}/${slug}/`, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': getCookie('csrftoken')
+                  }
+              })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.status !== 'success') {
+                      input.value = previousQuantity; // Revert if there's an error
+                      alert('Failed to update quantity.');
+                  }
+              })
+              .catch(() => {
+                  input.value = previousQuantity; // Revert if there's a fetch error
+                  alert('Failed to update quantity. Please try again.');
+              });
+          };
+      
+          // Decrease quantity
+          document.querySelectorAll(".btn-decrease").forEach(button => {
+              button.addEventListener("click", (event) => {
+                  const slug = event.target.dataset.slug;
+                  const input = event.target.closest('.cart-item').querySelector('.tp-cart-input');
+                  const quantity = parseInt(input.value);
+      
+                  if (quantity > 0) { // Prevent decrease if quantity is zero
+                      updateCartQuantity(slug, 'decrease');
+                  }
+              });
+          });
+      
+          // Increase quantity
+          document.querySelectorAll(".btn-increase").forEach(button => {
+              button.addEventListener("click", (event) => {
+                  const slug = event.target.dataset.slug;
+                  updateCartQuantity(slug, 'increase');
+              });
+          });
+      
+          function getCookie(name) {
+              const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+              return match ? decodeURIComponent(match[2]) : null;
+          }
+      });
+      </script>
+      
+      
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script>
+          $(document).ready(function() {
+              $('.tp-cart-action-btn').click(function() {
+                  const cartProductId = $(this).data('cart-product-id');
+      
+                  $.ajax({
+                      url: '{% url "remove_cart_item" %}',  // Django URL template tag
+                      type: 'POST',
+                      data: {
+                          'cart_product_id': cartProductId,
+                          'csrfmiddlewaretoken': '{{ csrf_token }}',  // Include CSRF token
+                      },
+                      success: function(response) {
+                          if (response.success) {
+                              // Optionally, remove the cart item from the 
+                              alert(response.message);  // Notify the user
+                          } else {
+                              alert(response.message);  // Handle errors
+                          }
+                      }.bind(this),  // Bind `this` to maintain context
+                      error: function(xhr, status, error) {
+                          console.error('Error removing item:', error);
+                          
+                          alert('An error occurred while removing the item.');
+                      }
+                  });
+              });
+          });
+      </script>
+      
+
+{%endblock%}
